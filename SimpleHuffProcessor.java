@@ -27,6 +27,9 @@ public class SimpleHuffProcessor implements IHuffProcessor {
     private int header;
     private Map<Integer, String> codeMap;
     private HuffmanTree huffTree;
+    private String treeEncoding;
+    private int treeEncodingBits;
+    private int[] freqs;
 
     /**
      * Preprocess data so that compression is possible ---
@@ -63,12 +66,13 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         huffTree = new HuffmanTree(frequencies);
         codeMap = huffTree.createMap();
         header = headerFormat;
+        freqs = frequencies;
 
         compressedBits += BITS_PER_INT;
         compressedBits += BITS_PER_INT;
         
         if (headerFormat == 1) {
-            bitsWritten += BITS_PER_INT * IHuffConstants.ALPH_SIZE;
+            compressedBits += BITS_PER_INT * IHuffConstants.ALPH_SIZE;
         } else if (headerFormat == 2) {
 
         }
@@ -121,13 +125,15 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         // write out rest of the header
         if (header == 1) {
             for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
-                btOut.writeBits(BITS_PER_INT, frequencies[k]);
+                btOut.writeBits(BITS_PER_INT, freqs[k]);
                 bitsWritten += BITS_PER_INT;
             }
         } else if (header == 2) {
-            btOut.writeBits(BITS_PER_INT, ____); // size of the header tree format
-            preOrderTraversalHelper(huffTree.getRoot(), )
-
+            int size = (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
+            btOut.writeBits(BITS_PER_INT, size);
+            bitsWritten += BITS_PER_INT;
+            preOrderTraversalHelper(huffTree.getRoot(), btOut);
+            bitsWritten += size;
         }
         
         int code = btIn.readBits(IHuffConstants.BITS_PER_WORD);
@@ -153,12 +159,12 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         if (n != null) {
             if (n.isLeaf()) {
                 bt.write(1);
-                bt.write(BITS_PER_WORD + 1, n.data); 
+                bt.writeBits(BITS_PER_WORD + 1, n.getValue()); 
             } else {
                 bt.write(0);
             }
-            preOrderTraversal(n.left);
-            preOrderTraversal(n.right);
+            preOrderTraversalHelper(n.getLeft(), bt);
+            preOrderTraversalHelper(n.getRight(), bt);
         }
     }
 

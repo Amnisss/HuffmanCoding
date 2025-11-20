@@ -50,24 +50,8 @@ public class HuffmanTree implements IHuffConstants{
     }
 
     public TreeNode getRoot() {
-        return TreeNode;
+        return root;
     }
 
-    public String getHeader() {
-        String result = "";
-        preOrderTraversal(root, result);
-    }
 
-    private void preOrderTraversal(TreeNode n, String r) {
-        if (n != null) {
-            if (n.isLeaf()) {
-                r += 1;
-                r += n.data; // needs to be the 9 bit representation
-            } else {
-                r += 0;
-            }
-            preOrderTraversal(n.left);
-            preOrderTraversal(n.right);
-        }
-    }
 }
