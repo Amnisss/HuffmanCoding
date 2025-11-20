@@ -74,11 +74,13 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         if (headerFormat == 1) {
             compressedBits += BITS_PER_INT * IHuffConstants.ALPH_SIZE;
         } else if (headerFormat == 2) {
-
+            compressedBits += BITS_PER_INT + (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
         }
 
         for (int i = 0; i < frequencies.length; i++) {
-            compressedBits += frequencies[i] * codeMap.get(i).length();
+            if (frequencies[i] != 0) {
+                compressedBits += frequencies[i] * codeMap.get(i).length();
+            }
         }
 
         //Pseudo-EOF
@@ -152,10 +154,11 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             bitsWritten++;
         }
 
+        //System.out.println(bitsWritten);
         return bitsWritten;
     }
 
-    private void preOrderTraversalHelper(TreeNode n, BitOutputStream bt) {
+    private void preOrderTraversalHelper(TreeNode n, BitOutputStream bt) throws IOException {
         if (n != null) {
             if (n.isLeaf()) {
                 bt.write(1);

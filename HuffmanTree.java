@@ -16,18 +16,19 @@ public class HuffmanTree implements IHuffConstants{
             }
         }
 
-        q.enqueue(new TreeNode(IHuffConstants.PSEUDO_EOF, 1)); // here?
+        q.enqueue(new TreeNode(IHuffConstants.PSEUDO_EOF, 1)); 
 
         while (q.size() > 1) {
 
             TreeNode n1 = q.dequeue();
             TreeNode n2 = q.dequeue();
-            TreeNode combined = new TreeNode(n1, n1.getFrequency() + n2.getFrequency(), n2);
+            TreeNode combined = new TreeNode(n1, 0, n2);
             q.enqueue(combined);
 
         }
 
         root = q.dequeue();
+
     }
 
     public Map<Integer, String> createMap() {

@@ -22,24 +22,17 @@ public class PriorityQueue314<E extends Comparable<E>> {
             return true;
         }
 
-        int indexToAdd = con.size();
-        boolean flag = false;
 
-        int curr = con.size()-1;
-        while (!flag && curr >= 0) {
-            int cmp = value.compareTo(con.get(curr));
-
-            if (cmp < 0) {
-                indexToAdd = curr;
-                flag = true;
-            }
-
-            curr--;
+        int indexToAdd = 0;
+        while (indexToAdd < con.size() && value.compareTo(con.get(indexToAdd)) >= 0) {
+            indexToAdd++;
         }
+
 
         con.add(indexToAdd, value);
         return true;
     }
+    
 
     public boolean isEmpty() {
         return con.size() == 0;
