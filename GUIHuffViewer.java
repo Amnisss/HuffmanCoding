@@ -76,6 +76,7 @@ public class GUIHuffViewer extends JFrame implements IHuffViewer {
 
         pack();
         setSize(650, 400);
+        
         setLocation(200, 100);
         setVisible(true);
     }

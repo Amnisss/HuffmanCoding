@@ -1,11 +1,15 @@
-public class PriorityQueue314<E> extends Comparable<E> implements Queue<E> {
+import java.util.ArrayList;
+import java.lang.Comparable;
+import java.util.Queue;
+import java.util.NoSuchElementException;
+import java.util.Collection;
+
+public class PriorityQueue314<E extends Comparable<E>> {
 
     private ArrayList<E> con;
 
-    // what other methods do I need to implement?
-
-    public PriorityQueue314<E> () {
-        con = new ArrayList(); // but get for add is O(N) //but adding or removing at the front for arraylist is O(N)
+    public PriorityQueue314() {
+        con = new ArrayList(); 
     }
 
     public boolean enqueue(E value) {
@@ -21,7 +25,7 @@ public class PriorityQueue314<E> extends Comparable<E> implements Queue<E> {
         int indexToAdd = con.size();
         boolean flag = false;
 
-        int curr = con.size();
+        int curr = con.size()-1;
         while (!flag && curr >= 0) {
             int cmp = value.compareTo(con.get(curr));
 
@@ -35,8 +39,6 @@ public class PriorityQueue314<E> extends Comparable<E> implements Queue<E> {
 
         con.add(indexToAdd, value);
         return true;
-
-
     }
 
     public boolean isEmpty() {
@@ -48,6 +50,9 @@ public class PriorityQueue314<E> extends Comparable<E> implements Queue<E> {
     }
 
     public E peek() {
+        if (con.size() == 0) {
+            return null;
+        }
         return con.get(con.size()-1);
     }
 

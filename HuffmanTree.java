@@ -1,4 +1,7 @@
-public class HuffmanTree {
+import java.util.HashMap;
+import java.util.Map;
+
+public class HuffmanTree implements IHuffConstants{
 
     private TreeNode root;
 
@@ -12,6 +15,8 @@ public class HuffmanTree {
                 q.enqueue(n);
             }
         }
+
+        q.enqueue(new TreeNode(IHuffConstants.PSEUDO_EOF, 1)); // here?
 
         while (q.size() > 1) {
 
@@ -35,12 +40,34 @@ public class HuffmanTree {
     }
 
     private void createMapHelper(TreeNode n, String path, Map<Integer, String> result) {
-        if (n.isLeaf()) {
-            result.put(n.getValue(), path);
-        }
-        createMapHelper(n.getLeft(), path + "0");
-        createMapHelper(n.getRight(), path + "1");
+        if (n != null) {
+            if (n.isLeaf()) {
+                result.put(n.getValue(), path);
+            }
+            createMapHelper(n.getLeft(), path + "0", result);
+            createMapHelper(n.getRight(), path + "1", result);
+        } 
     }
-    
 
+    public TreeNode getRoot() {
+        return TreeNode;
+    }
+
+    public String getHeader() {
+        String result = "";
+        preOrderTraversal(root, result);
+    }
+
+    private void preOrderTraversal(TreeNode n, String r) {
+        if (n != null) {
+            if (n.isLeaf()) {
+                r += 1;
+                r += n.data; // needs to be the 9 bit representation
+            } else {
+                r += 0;
+            }
+            preOrderTraversal(n.left);
+            preOrderTraversal(n.right);
+        }
+    }
 }
