@@ -119,18 +119,13 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         if (header == 1) {
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_COUNTS);
             bitsWritten += IHuffConstants.BITS_PER_INT;
-        } else if (header == 2) {
-            btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_TREE);
-            bitsWritten += IHuffConstants.BITS_PER_INT;
-        }
-
-        // write out rest of the header
-        if (header == 1) {
             for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
                 btOut.writeBits(BITS_PER_INT, freqs[k]);
                 bitsWritten += BITS_PER_INT;
             }
         } else if (header == 2) {
+            btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_TREE);
+            bitsWritten += IHuffConstants.BITS_PER_INT;
             int size = (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
             btOut.writeBits(BITS_PER_INT, size);
             bitsWritten += BITS_PER_INT;
