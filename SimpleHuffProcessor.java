@@ -49,7 +49,6 @@ public class SimpleHuffProcessor implements IHuffProcessor {
      * @throws IOException if an error occurs while reading from the input file.
      */
     public int preprocessCompress(InputStream in, int headerFormat) throws IOException {
-
         int originalBits = 0;
         int compressedBits = 0;
         BitInputStream bt = new BitInputStream(in);
@@ -71,9 +70,9 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         compressedBits += BITS_PER_INT;
         compressedBits += BITS_PER_INT;
         
-        if (headerFormat == 1) {
+        if (headerFormat == IHuffConstants.STORE_COUNTS) {
             compressedBits += BITS_PER_INT * IHuffConstants.ALPH_SIZE;
-        } else if (headerFormat == 2) {
+        } else if (headerFormat == IHuffConstants.STORE_TREE) {
             compressedBits += BITS_PER_INT + (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
         }
 
@@ -116,14 +115,14 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 
         btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.MAGIC_NUMBER);
         bitsWritten += IHuffConstants.BITS_PER_INT;
-        if (header == 1) {
+        if (header == IHuffConstants.STORE_COUNTS) {
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_COUNTS);
             bitsWritten += IHuffConstants.BITS_PER_INT;
             for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
                 btOut.writeBits(BITS_PER_INT, freqs[k]);
                 bitsWritten += BITS_PER_INT;
             }
-        } else if (header == 2) {
+        } else if (header == IHuffConstants.STORE_TREE) {
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_TREE);
             bitsWritten += IHuffConstants.BITS_PER_INT;
             int size = (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
@@ -137,7 +136,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         while (code != -1) {
             String compressed = codeMap.get(code);
             for (int i = 0; i < compressed.length(); i++) {
-                btOut.write(compressed.charAt(i) - '0');
+                btOut.writeBits(1, compressed.charAt(i) - '0');
                 bitsWritten++;
             }
             code = btIn.readBits(IHuffConstants.BITS_PER_WORD);
@@ -148,6 +147,11 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             btOut.write(pseudoEof.charAt(i) - '0');
             bitsWritten++;
         }
+
+        // add bits to ensure its not a partial byte
+
+
+        btOut.close();
 
         //System.out.println(bitsWritten);
         return bitsWritten;
