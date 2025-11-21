@@ -35,7 +35,6 @@ public class HuffmanTree implements IHuffConstants{
 
         Map<Integer, String> result = new HashMap<>();
         createMapHelper(root, "", result);
-        // pseudo IOF
         return result;
         
     }
@@ -50,7 +49,26 @@ public class HuffmanTree implements IHuffConstants{
         } 
     }
 
-    public TreeNode getRoot() {
+    public HuffmanTree(BitInputStream btIn) throws IOException{
+        root = reconstructHelper(btOut);
+    }
+
+    private TreeNode reconstructHelper(TreeNode n, BitInputStream btIn) throws IOException {
+        int currentBit = btIn.readBits(1);
+        if (currentBit == 1) {
+            // leaf node
+            int value = btIn.readBits(BITS_PER_WORD + 1);
+            return new TreeNode(value, -1); 
+        } else if (currentBit == 0) {
+            // add internal node
+            return new TreeNode(reconstructHelper(n.getLeft()), -1, reconstructHelper(n.getRight()));
+        } else {
+            // error: at the end of the file
+            throw IOException("incomplete header");
+        }
+    }
+
+    public TreeNode getRoot() { // TODO unhygenic
         return root;
     }
 

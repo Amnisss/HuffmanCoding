@@ -23,13 +23,14 @@ import java.util.Map;
 
 public class SimpleHuffProcessor implements IHuffProcessor {
 
+    // TODO: make compress and decompress class to reduce instance variables??
     private IHuffViewer myViewer;
     private int header;
     private Map<Integer, String> codeMap;
     private HuffmanTree huffTree;
-    private String treeEncoding;
-    private int treeEncodingBits;
     private int[] freqs;
+    private boolean preprocessCalled;
+    
 
     /**
      * Preprocess data so that compression is possible ---
@@ -50,7 +51,6 @@ public class SimpleHuffProcessor implements IHuffProcessor {
      */
     public int preprocessCompress(InputStream in, int headerFormat) throws IOException {
         int originalBits = 0;
-        int compressedBits = 0;
         BitInputStream bt = new BitInputStream(in);
         int[] frequencies = new int[IHuffConstants.ALPH_SIZE];
         int code = bt.readBits(IHuffConstants.BITS_PER_WORD);
@@ -67,13 +67,29 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         header = headerFormat;
         freqs = frequencies;
 
-        compressedBits += BITS_PER_INT;
-        compressedBits += BITS_PER_INT;
+        int compressedBits = calculateCompressedBits(headerFormat, codeMap, frequencies);
+        
+        //showString("Not working yet");
+        //myViewer.update("Still not working");
+        //throw new IOException("preprocess not implemented"); ??TODO
+
+        return originalBits - compressedBits;
+        
+    }
+
+    private int calculateCompressedBits(int headerFormat, Map<Integer, String> codeMap, int[] frequencies) {
+        int compressedBits = 0;
+
+        // Magic number
+        compressedBits += IHuffConstants.BITS_PER_INT;
+
+        // format identifier
+        compressedBits += IHuffConstants.BITS_PER_INT;
         
         if (headerFormat == IHuffConstants.STORE_COUNTS) {
-            compressedBits += BITS_PER_INT * IHuffConstants.ALPH_SIZE;
+            compressedBits += IHuffConstants.BITS_PER_INT * IHuffConstants.ALPH_SIZE;
         } else if (headerFormat == IHuffConstants.STORE_TREE) {
-            compressedBits += BITS_PER_INT + (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
+            compressedBits += IHuffConstants.BITS_PER_INT + (codeMap.keySet().size() * (IHuffConstants.BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
         }
 
         for (int i = 0; i < frequencies.length; i++) {
@@ -84,13 +100,8 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 
         //Pseudo-EOF
         compressedBits += codeMap.get(256).length();
-        
-        //showString("Not working yet");
-        //myViewer.update("Still not working");
-        //throw new IOException("preprocess not implemented");
 
-        return originalBits - compressedBits;
-        
+        return compressedBits;
     }
 
     /**
@@ -109,7 +120,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
      */
     public int compress(InputStream in, OutputStream out, boolean force) throws IOException {
         
-        //throw new IOException("compress is not implemented");
+        // TODO: check precon (check if precompress was called)
         
         BitInputStream btIn = new BitInputStream(in);
         BitOutputStream btOut = new BitOutputStream(out);
@@ -140,7 +151,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             bitsWritten += BITS_PER_INT;
 
             // represent the huffman tree in bits
-            preOrderTraversalHelper(huffTree.getRoot(), btOut);
+            preOrderTraversalHelper(huffTree.getRoot(), btOut); // TODO: unhygenic!! put method in tree class
             bitsWritten += size;
         }
         
@@ -194,37 +205,64 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 	        //throw new IOException("uncompress not implemented");
             BitInputStream btIn = new BitInputStream(in);
             int magic = btIn.readBits(BITS_PER_INT);
+            int bitsWritten = 0;
 
+            int magic = in.readBits(BITS_PER_INT);
             if (magic != MAGIC_NUMBER) {
-                // do I throw exception if first 32 bits is not the magic number?
-                // or display error and return -1
-                // my viewer .show error
-        
-            } 
+                viewer.showError("Error reading compressed file. \n" +
+                        "File did not start with the huff magic number.");
+                return -1;
+            }
 
             int headerFormat = btIn.readBits(BITS_PER_INT);
 
 	        if (headerFormat == IHuffConstants.STORE_COUNTS) {
-                
-
+                // reconstruct frequency array
+                for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
+                    int frequencyInOriginalFile = in.readBits(BITS_PER_INT); // TODO: check if code = -1
+                    freqs[k] = frequencyInOriginalFile;
+                } 
+                // reconstruct huffman tree
+                huffTree = new HuffmanTree(freqs);
+    
             } else if (headerFormat == IHuffConstants.STORE_TREE) {
                 // read in size of the header
                 int bitsLeft = btIn.readBits(BITS_PER_INT); 
 
                 // reconstruct huffman tree
-                while (bitsLeft > 0) {
-                    String code = "";
-                    if (btIn.readBits(1) == 1) {
-                        btIn.readBits(BITS_PER_WORD + 1);
-                        //
-                        bitsLeft -= 9;
-                    } else {
-                        
-                    }
-                    bitsLeft--;
-                }
+                huffTree = new HuffmanTree(btIn);
+                
             }
-            return 0;
+
+            codeMap = huffTree.createMap();
+
+            // create a reverse mapping
+            Map<String, Integer> decompressMap = new HashMap<>();
+
+            for (int key : codeMap.keySet()) { 
+                decompressMap.put(codeMap.get(key), key);
+            }
+
+            // read compressed data and write out decompressed file
+            String currentPath = "";
+            String pseudoEofCode = codeMap.get(IHuffConstants.PSEUDO_EOF);
+
+            // read compressed data until PseudoEOF is reached
+            while(currentPath != pseudoEofCode) { // (TODO: have to check for if read -1)
+                
+                // if a valid code, write out the character
+                if (decompressMap.keySet().contains(currentPath)) {
+                    btOut.writeBits(BITS_PER_WORD, decompressMap.get(currentPath)); 
+                    bitsWritten += BITS_PER_WORD;
+                    currentPath = "";
+                }
+
+                int currentBit = btIn.readBits(1); 
+                currentPath += currentBit;
+                
+            }
+            
+            return bitsWritten;
     }
 
     public void setViewer(IHuffViewer viewer) {
