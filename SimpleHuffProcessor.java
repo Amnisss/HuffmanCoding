@@ -148,9 +148,6 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             bitsWritten++;
         }
 
-        // add bits to ensure its not a partial byte
-
-
         btOut.close();
 
         //System.out.println(bitsWritten);
@@ -180,8 +177,26 @@ public class SimpleHuffProcessor implements IHuffProcessor {
      * writing to the output file.
      */
     public int uncompress(InputStream in, OutputStream out) throws IOException {
-	        throw new IOException("uncompress not implemented");
-	        //return 0;
+	        //throw new IOException("uncompress not implemented");
+            BitInputStream btIn = new BitInputStream(in);
+            int magic = btIn.readBits(BITS_PER_INT);
+
+            if (magic != MAGIC_NUMBER) {
+                // do I throw exception if first 32 bits is not the magic number?
+                // or display error and return -1
+                // my viewer .show error
+        
+            } 
+
+            int headerFormat = btIn.readBits(BITS_PER_INT);
+
+	        if (headerFormat == IHuffConstants.STORE_COUNTS) {
+
+
+            } else if (headerFormat == IHuffConstants.STORE_TREE) {
+
+            }
+            return 0;
     }
 
     public void setViewer(IHuffViewer viewer) {
