@@ -126,6 +126,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_TREE);
             bitsWritten += IHuffConstants.BITS_PER_INT;
             int size = (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
+            System.out.println(size);
             btOut.writeBits(BITS_PER_INT, size);
             bitsWritten += BITS_PER_INT;
             preOrderTraversalHelper(huffTree.getRoot(), btOut);
@@ -144,7 +145,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 
         String pseudoEof = codeMap.get(256);
         for (int i = 0; i < pseudoEof.length(); i++) {
-            btOut.write(pseudoEof.charAt(i) - '0');
+            btOut.writeBits(1, pseudoEof.charAt(i) - '0');
             bitsWritten++;
         }
 
@@ -157,10 +158,10 @@ public class SimpleHuffProcessor implements IHuffProcessor {
     private void preOrderTraversalHelper(TreeNode n, BitOutputStream bt) throws IOException {
         if (n != null) {
             if (n.isLeaf()) {
-                bt.write(1);
+                bt.writeBits(1,1);
                 bt.writeBits(BITS_PER_WORD + 1, n.getValue()); 
             } else {
-                bt.write(0);
+                bt.writeBits(1,0);
             }
             preOrderTraversalHelper(n.getLeft(), bt);
             preOrderTraversalHelper(n.getRight(), bt);
