@@ -72,5 +72,22 @@ public class HuffmanTree implements IHuffConstants{
         return root;
     }
 
+    public void writeHeader(BitOutputStream btOut) throws IOException {
+        preOrderTraversalHelper(root, btOut);
+    }
+
+    private void preOrderTraversalHelper(TreeNode n, BitOutputStream bt) throws IOException {
+        if (n != null) {
+            if (n.isLeaf()) {
+                bt.writeBits(1,1);
+                bt.writeBits(BITS_PER_WORD + 1, n.getValue()); 
+            } else {
+                bt.writeBits(1,0);
+            }
+            preOrderTraversalHelper(n.getLeft(), bt);
+            preOrderTraversalHelper(n.getRight(), bt);
+        }
+    }
+
 
 }

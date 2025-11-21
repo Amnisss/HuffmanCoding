@@ -151,7 +151,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             bitsWritten += BITS_PER_INT;
 
             // represent the huffman tree in bits
-            preOrderTraversalHelper(huffTree.getRoot(), btOut); // TODO: unhygenic!! put method in tree class
+            huffTree.writeHeader(btOut);
             bitsWritten += size;
         }
         
@@ -179,18 +179,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
         return bitsWritten;
     }
 
-    private void preOrderTraversalHelper(TreeNode n, BitOutputStream bt) throws IOException {
-        if (n != null) {
-            if (n.isLeaf()) {
-                bt.writeBits(1,1);
-                bt.writeBits(BITS_PER_WORD + 1, n.getValue()); 
-            } else {
-                bt.writeBits(1,0);
-            }
-            preOrderTraversalHelper(n.getLeft(), bt);
-            preOrderTraversalHelper(n.getRight(), bt);
-        }
-    }
+    
 
     /**
      * Uncompress a previously compressed stream in, writing the
