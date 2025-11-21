@@ -51,7 +51,7 @@ public class HuffmanTree implements IHuffConstants{
     }
 
     public HuffmanTree(BitInputStream btIn) throws IOException{
-        root = reconstructHelper(root, btIn);
+        root = reconstructHelper(root, btIn); 
     }
 
     private TreeNode reconstructHelper(TreeNode n, BitInputStream btIn) throws IOException {

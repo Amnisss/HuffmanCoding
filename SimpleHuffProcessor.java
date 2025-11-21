@@ -195,11 +195,10 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 	        //throw new IOException("uncompress not implemented");
             BitInputStream btIn = new BitInputStream(in);
             BitOutputStream btOut = new BitOutputStream(out);
-            int magic = btIn.readBits(BITS_PER_INT);
             int bitsWritten = 0;
 
             int isMagic = btIn.readBits(BITS_PER_INT);
-            if (isMagic != MAGIC_NUMBER) {
+            if (isMagic != IHuffConstants.MAGIC_NUMBER) {
                 myViewer.showError("Error reading compressed file. \n" +
                         "File did not start with the huff magic number.");
                 return -1;
