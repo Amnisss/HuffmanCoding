@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.io.IOException;
 
 public class HuffmanTree implements IHuffConstants{
 
@@ -50,7 +51,7 @@ public class HuffmanTree implements IHuffConstants{
     }
 
     public HuffmanTree(BitInputStream btIn) throws IOException{
-        root = reconstructHelper(btOut);
+        root = reconstructHelper(root, btIn);
     }
 
     private TreeNode reconstructHelper(TreeNode n, BitInputStream btIn) throws IOException {
@@ -61,10 +62,10 @@ public class HuffmanTree implements IHuffConstants{
             return new TreeNode(value, -1); 
         } else if (currentBit == 0) {
             // add internal node
-            return new TreeNode(reconstructHelper(n.getLeft()), -1, reconstructHelper(n.getRight()));
+            return new TreeNode(reconstructHelper(n.getLeft(), btIn), -1, reconstructHelper(n.getRight(), btIn));
         } else {
             // error: at the end of the file
-            throw IOException("incomplete header");
+            throw new IOException("incomplete header");
         }
     }
 

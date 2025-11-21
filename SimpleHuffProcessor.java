@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.HashMap;
 
 public class SimpleHuffProcessor implements IHuffProcessor {
 
@@ -193,12 +194,13 @@ public class SimpleHuffProcessor implements IHuffProcessor {
     public int uncompress(InputStream in, OutputStream out) throws IOException {
 	        //throw new IOException("uncompress not implemented");
             BitInputStream btIn = new BitInputStream(in);
+            BitOutputStream btOut = new BitOutputStream(out);
             int magic = btIn.readBits(BITS_PER_INT);
             int bitsWritten = 0;
 
-            int magic = in.readBits(BITS_PER_INT);
-            if (magic != MAGIC_NUMBER) {
-                viewer.showError("Error reading compressed file. \n" +
+            int isMagic = btIn.readBits(BITS_PER_INT);
+            if (isMagic != MAGIC_NUMBER) {
+                myViewer.showError("Error reading compressed file. \n" +
                         "File did not start with the huff magic number.");
                 return -1;
             }
@@ -208,7 +210,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 	        if (headerFormat == IHuffConstants.STORE_COUNTS) {
                 // reconstruct frequency array
                 for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
-                    int frequencyInOriginalFile = in.readBits(BITS_PER_INT); // TODO: check if code = -1
+                    int frequencyInOriginalFile = btIn.readBits(BITS_PER_INT); // TODO: check if code = -1
                     freqs[k] = frequencyInOriginalFile;
                 } 
                 // reconstruct huffman tree
