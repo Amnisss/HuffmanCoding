@@ -108,34 +108,47 @@ public class SimpleHuffProcessor implements IHuffProcessor {
      * writing to the output file.
      */
     public int compress(InputStream in, OutputStream out, boolean force) throws IOException {
+        
         //throw new IOException("compress is not implemented");
+        
         BitInputStream btIn = new BitInputStream(in);
         BitOutputStream btOut = new BitOutputStream(out);
         int bitsWritten = 0;
 
+        // write magic number for hf file
         btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.MAGIC_NUMBER);
         bitsWritten += IHuffConstants.BITS_PER_INT;
+
         if (header == IHuffConstants.STORE_COUNTS) {
+            // write identifier for store count header format
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_COUNTS);
             bitsWritten += IHuffConstants.BITS_PER_INT;
+
+            // write out frequencies of each character
             for(int k=0; k < IHuffConstants.ALPH_SIZE; k++) {
                 btOut.writeBits(BITS_PER_INT, freqs[k]);
                 bitsWritten += BITS_PER_INT;
             }
         } else if (header == IHuffConstants.STORE_TREE) {
+            // write identifier for store tree header format
             btOut.writeBits(IHuffConstants.BITS_PER_INT, IHuffConstants.STORE_TREE);
             bitsWritten += IHuffConstants.BITS_PER_INT;
+
+            // calculate and write outsize of header
             int size = (codeMap.keySet().size() * (BITS_PER_WORD + 1 + 1)) + (codeMap.keySet().size() - 1);
-            System.out.println(size);
             btOut.writeBits(BITS_PER_INT, size);
             bitsWritten += BITS_PER_INT;
+
+            // represent the huffman tree in bits
             preOrderTraversalHelper(huffTree.getRoot(), btOut);
             bitsWritten += size;
         }
         
+        // read in the original file
         int code = btIn.readBits(IHuffConstants.BITS_PER_WORD);
         while (code != -1) {
             String compressed = codeMap.get(code);
+            // write out the new code for each character
             for (int i = 0; i < compressed.length(); i++) {
                 btOut.writeBits(1, compressed.charAt(i) - '0');
                 bitsWritten++;
@@ -143,6 +156,7 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             code = btIn.readBits(IHuffConstants.BITS_PER_WORD);
         }
 
+        // write out pseudo EOF value at the end
         String pseudoEof = codeMap.get(256);
         for (int i = 0; i < pseudoEof.length(); i++) {
             btOut.writeBits(1, pseudoEof.charAt(i) - '0');
@@ -151,7 +165,6 @@ public class SimpleHuffProcessor implements IHuffProcessor {
 
         btOut.close();
 
-        //System.out.println(bitsWritten);
         return bitsWritten;
     }
 
@@ -192,10 +205,24 @@ public class SimpleHuffProcessor implements IHuffProcessor {
             int headerFormat = btIn.readBits(BITS_PER_INT);
 
 	        if (headerFormat == IHuffConstants.STORE_COUNTS) {
-
+                
 
             } else if (headerFormat == IHuffConstants.STORE_TREE) {
+                // read in size of the header
+                int bitsLeft = btIn.readBits(BITS_PER_INT); 
 
+                // reconstruct huffman tree
+                while (bitsLeft > 0) {
+                    String code = "";
+                    if (btIn.readBits(1) == 1) {
+                        btIn.readBits(BITS_PER_WORD + 1);
+                        //
+                        bitsLeft -= 9;
+                    } else {
+                        
+                    }
+                    bitsLeft--;
+                }
             }
             return 0;
     }
